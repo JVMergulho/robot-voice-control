@@ -41,7 +41,7 @@ class ARViewController: UIViewController {
     
     private var arView: ARView!
     var robotEntity: ModelEntity?
-    var moveToLocation: Transform = Transform()
+    let moveDuration: Double = 5.0 // seconds
     
     let speechRecognizer: SFSpeechRecognizer? = SFSpeechRecognizer()
     let speechRequest = SFSpeechAudioBufferRecognitionRequest()
@@ -60,6 +60,10 @@ class ARViewController: UIViewController {
         
         startPlaneDetection()
         loadRobot()
+        
+        if let robotEntity{
+            installGestures(on: robotEntity)
+        }
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         arView.addGestureRecognizer(tapGesture)
@@ -112,38 +116,79 @@ class ARViewController: UIViewController {
     //MARK: - Move
     
     func move(direction: Direction){
-        let moveDuration: Double = 5.0 // seconds
         
         switch direction{
             case .forward:
-                moveToLocation.translation = (robotEntity?.transform.translation)! + simd_float3(x: 0, y:0, z: 20)
-                robotEntity?.move(to: moveToLocation, relativeTo: robotEntity, duration: 5)
-            
-                walkingAnimation(duration: moveDuration)
-            
+                movieLinear(30)
             case .back:
-                moveToLocation.translation = (robotEntity?.transform.translation)! + simd_float3(x: 0, y:0, z: -20)
-                robotEntity?.move(to: moveToLocation, relativeTo: robotEntity, duration: 5)
-            
-                walkingAnimation(duration: moveDuration)
+                movieLinear(-30, reverse: true)
             case .left:
-                let rotateToAngle = simd_quatf(angle: GLKMathDegreesToRadians(90), axis: SIMD3(x: 0, y: 1, z: 0))
-                robotEntity?.setOrientation(rotateToAngle, relativeTo: robotEntity)
-            
+                rotateInDegrees(90)
             case .right:
-                let rotateToAngle = simd_quatf(angle: GLKMathDegreesToRadians(-90), axis: SIMD3(x: 0, y: 1, z: 0))
-                robotEntity?.setOrientation(rotateToAngle, relativeTo: robotEntity)
+                rotateInDegrees(-90)
         }
         
     }
     
-    func walkingAnimation(duration: Double){
+    func movieLinear(_ distance: Float, reverse: Bool = false){
+        
+        var moveToLocation = Transform()
+        moveToLocation.translation = (robotEntity?.transform.translation)! + simd_float3(x: 0, y:0, z: distance)
+        robotEntity?.move(to: moveToLocation, relativeTo: robotEntity, duration: moveDuration, timingFunction: .linear)
+        
+        walkingAnimation(duration: moveDuration, reverse: reverse)
+    }
+    
+    func rotateInDegrees(_ angle: Float, duration: TimeInterval = 2) {
+        guard let robotEntity else { return }
+        
+        // Determinar a rotação final
+        let rotationAngle = simd_quatf(angle: GLKMathDegreesToRadians(angle), axis: SIMD3(x: 0, y: 1, z: 0))
+        
+        var rotateToAngle = Transform()
+        rotateToAngle.rotation = rotationAngle
+
+        // Aplicar a animação à entidade
+        robotEntity.move(to: rotateToAngle, relativeTo: robotEntity, duration: duration, timingFunction: .easeInOut)
+    }
+
+    
+    func walkingAnimation(duration: Double, reverse: Bool = false){
         //USDZ file
-        if let robotAnimation = robotEntity?.availableAnimations.first {
-            robotEntity?.playAnimation(robotAnimation.repeat(duration: duration), transitionDuration: 0.5, startsPaused: false)
+        guard let robotEntity else {return}
+        
+        print(robotEntity.availableAnimations)
+        
+        if let robotAnimation = robotEntity.availableAnimations.first {
+            
+            var playerDefinition = robotAnimation.definition
+            
+            playerDefinition.speed = reverse ? -1 : 1
+            
+            let playerAnimation = try! AnimationResource.generate(with: playerDefinition)
+            
+            playAnimation(animation: playerAnimation, repeate: 2)
+            
         } else {
             print("No animation present")
         }
+    }
+    
+    func playAnimation(animation: AnimationResource, repeate: Int) {
+        
+        guard repeate > 0 else{return}
+        
+        let repeate = repeate - 1
+        
+        robotEntity?.playAnimation(
+            animation,
+            startsPaused: false
+        )
+        
+        Timer.scheduledTimer(withTimeInterval: animation.definition.duration, repeats: false){ timer in
+            self.playAnimation(animation: animation, repeate: repeate)
+        }
+
     }
     
     //MARK: - Utilities
@@ -159,6 +204,11 @@ class ARViewController: UIViewController {
             print("Não foi possível carregar o modelo: \(error)")
         }
         
+    }
+    
+    func installGestures(on object: ModelEntity){
+        object.generateCollisionShapes(recursive: true)
+        arView.installGestures([.scale], for: object)
     }
     
     //MARK: - Speech Recgnition
@@ -215,23 +265,17 @@ class ARViewController: UIViewController {
             return()
         }
         
-        var count = 0
         speechTask = speechRecognizer.recognitionTask(with: speechRequest) { (result, error) in
-            count = count + 1
             
-            if(count == 1){
-                guard let result else { return }
-                let recognizedText = result.bestTranscription.segments.last
-                
-                if let recognizedText = recognizedText?.substring {
-                    if let direction = Direction.stringToDirection(word: recognizedText) {
-                        print("Recognized text: \(recognizedText)")
-                        
-                        self.move(direction: direction)
-                    }
+            guard let result else { return }
+            let recognizedText = result.bestTranscription.segments.last
+            
+            if let recognizedText = recognizedText?.substring {
+                if let direction = Direction.stringToDirection(word: recognizedText) {
+                    print("Recognized text: \(recognizedText)")
+                    
+                    self.move(direction: direction)
                 }
-            } else if(count >= 3){
-                count = 0
             }
         }
     }
