@@ -41,6 +41,7 @@ class ARViewController: UIViewController {
     
     private var arView: ARView!
     var robotEntity: ModelEntity?
+    let robotAnchor = AnchorEntity(world: SIMD3(x: 0, y: 0, z: 0))
     let moveDuration: Double = 5.0 // seconds
     
     let speechRecognizer: SFSpeechRecognizer? = SFSpeechRecognizer()
@@ -87,7 +88,7 @@ class ARViewController: UIViewController {
             
             placeObject(object: robotEntity, location: worldPos)
             
-            move(direction: .forward)
+            //move(direction: .forward)
                         
         } else {
             print("Nenhum plano detectado no local do toque.")
@@ -95,10 +96,12 @@ class ARViewController: UIViewController {
     }
     
     func placeObject(object: ModelEntity, location: SIMD3<Float>){
+        object.position = location
         
-        let anchor = AnchorEntity(world: location)
-        anchor.addChild(object)
-        arView.scene.addAnchor(anchor)
+        if robotAnchor.children.isEmpty{
+            robotAnchor.addChild(object)
+            arView.scene.addAnchor(robotAnchor)
+        }
     }
     
     func startPlaneDetection(){
@@ -130,14 +133,16 @@ class ARViewController: UIViewController {
         
     }
     
-    func movieLinear(_ distance: Float, reverse: Bool = false){
-        
+    func movieLinear(_ distance: Float, reverse: Bool = false) {
+        guard let robotEntity else { return }
+
         var moveToLocation = Transform()
-        moveToLocation.translation = (robotEntity?.transform.translation)! + simd_float3(x: 0, y:0, z: distance)
-        robotEntity?.move(to: moveToLocation, relativeTo: robotEntity, duration: moveDuration, timingFunction: .linear)
-        
+        moveToLocation.translation = robotEntity.transform.translation + simd_float3(x: 0, y: 0, z: distance)
+        robotEntity.move(to: moveToLocation, relativeTo: robotEntity, duration: moveDuration, timingFunction: .linear)
+
         walkingAnimation(duration: moveDuration, reverse: reverse)
     }
+
     
     func rotateInDegrees(_ angle: Float, duration: TimeInterval = 2) {
         guard let robotEntity else { return }
@@ -156,8 +161,6 @@ class ARViewController: UIViewController {
     func walkingAnimation(duration: Double, reverse: Bool = false){
         //USDZ file
         guard let robotEntity else {return}
-        
-        print(robotEntity.availableAnimations)
         
         if let robotAnimation = robotEntity.availableAnimations.first {
             
