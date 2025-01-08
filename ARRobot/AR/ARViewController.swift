@@ -1,40 +1,13 @@
 //
-//  ContentView.swift
+//  ARViewController.swift
 //  ARRobot
 //
-//  Created by João Vitor Lima Mergulhão on 07/01/25.
+//  Created by João Vitor Lima Mergulhão on 08/01/25.
 //
 
 import RealityKit
 import ARKit
-import SwiftUI
-import Combine
 import Speech
-
-struct ContentView : View {
-
-    var body: some View {
-        let ARViewContainer = ARViewContainer()
-        
-        ARViewContainer
-            .edgesIgnoringSafeArea(.all)
-    }
-
-}
-
-// UIKit Integration
-struct ARViewContainer: UIViewControllerRepresentable {
-    
-    func makeUIViewController(context: Context) -> ARViewController {
-        let viewController = ARViewController()
-        return viewController
-    }
-
-    func updateUIViewController(_ uiViewController: ARViewController, context: Context) {
-        // Atualizações, se necessário
-    }
-}
-
 
 // RealityKit ViewController
 class ARViewController: UIViewController {
@@ -283,28 +256,3 @@ class ARViewController: UIViewController {
         }
     }
 }
-
-enum Direction: String, CaseIterable{
-    case forward
-    case back
-    case left
-    case right
-    
-    static func stringToDirection(word: String) -> Direction?{
-        for direction in Direction.allCases{
-            if direction.rawValue == word{
-                return direction
-            }
-        }
-        
-        return nil
-    }
-}
-
-// Helper to extract translation from a matrix
-extension simd_float4x4 {
-    var translation: SIMD3<Float> {
-        return SIMD3(x: columns.3.x, y: columns.3.y, z: columns.3.z)
-    }
-}
-
