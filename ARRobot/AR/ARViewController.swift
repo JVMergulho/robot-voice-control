@@ -96,8 +96,17 @@ class ARViewController: UIViewController {
         let coachingOverlay = ARCoachingOverlayView()
         coachingOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         coachingOverlay.session = arView.session
+        coachingOverlay.translatesAutoresizingMaskIntoConstraints = false
         coachingOverlay.goal = .horizontalPlane
         view.addSubview(coachingOverlay)
+        
+        //centralize coaching overlay
+        NSLayoutConstraint.activate([
+            coachingOverlay.centerXAnchor.constraint(equalTo: arView.centerXAnchor),
+            coachingOverlay.centerYAnchor.constraint(equalTo: arView.centerYAnchor),
+            coachingOverlay.widthAnchor.constraint(equalTo: arView.widthAnchor),
+            coachingOverlay.heightAnchor.constraint(equalTo: arView.heightAnchor)
+        ])
         
         arView.debugOptions = [.showAnchorOrigins, .showPhysics]
     
