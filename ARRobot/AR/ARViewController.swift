@@ -68,13 +68,33 @@ class ARViewController: UIViewController {
             let worldPos = result.worldTransform.translation
             print("Coordenada 3D do toque: \(worldPos)")
             
-            placeObject(object: robotEntity, location: worldPos)
+            //create plane below the robot
+            makeGround(location: worldPos)
+            
+            //place robot a little above the plane to make it fall
+            let robotPosition = worldPos + SIMD3(x: 0, y: 1, z: 0)
+            
+            placeObject(object: robotEntity, location: robotPosition)
             
             //move(direction: .forward)
                         
         } else {
             print("Nenhum plano detectado no local do toque.")
         }
+    }
+    
+    func makeGround(location: SIMD3<Float>){
+        let planeMesh = MeshResource.generatePlane(width: 2, depth: 2)
+        let material = SimpleMaterial(color: .init(white: 1.0, alpha: 0.1), isMetallic: false)
+        let planeEntity = ModelEntity(mesh: planeMesh, materials: [material])
+        planeEntity.physicsBody = PhysicsBodyComponent(massProperties: .default, material: nil, mode: .static)
+        planeEntity.collision = CollisionComponent(shapes: [.generateBox(width: 2, height: 0.001, depth: 2)], isStatic: true)
+        
+        let anchor = AnchorEntity(world: location)
+        anchor.addChild(planeEntity)
+        
+        // Adiciona o anchorEntity à cena do ARView
+        arView.scene.addAnchor(anchor)
     }
     
     func placeObject(object: ModelEntity, location: SIMD3<Float>){
@@ -93,6 +113,7 @@ class ARViewController: UIViewController {
         configuration.planeDetection = [.horizontal]
         configuration.environmentTexturing = .automatic
         
+        //add coaching overlay
         let coachingOverlay = ARCoachingOverlayView()
         coachingOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         coachingOverlay.session = arView.session
@@ -213,10 +234,10 @@ class ARViewController: UIViewController {
             let robotFilter = CollisionFilter(group: CollisionGroups.robotGroup, mask: robotMask)
                         
             let collisionShape = ShapeResource.generateBox(size: robotSize)
-            let collisionComponent = CollisionComponent(shapes: [collisionShape], filter: robotFilter)
-            robotEntity.components.set(collisionComponent)
+            //let collisionComponent = CollisionComponent(shapes: [collisionShape], filter: robotFilter)
+            //robotEntity.components.set(collisionComponent)
 
-            let physicsBody = PhysicsBodyComponent(massProperties: .default,
+            let physicsBody = PhysicsBodyComponent(massProperties: .init(shape: collisionShape, mass: 50),
                                                    material: .default,
                                                    mode: .dynamic)
             robotEntity.components.set(physicsBody)

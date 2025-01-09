@@ -35,7 +35,7 @@ struct ARViewContainer: UIViewControllerRepresentable {
     class Coordinator: NSObject, ARSessionDelegate{
         weak var view: ARView?
         var focusEntity: FocusEntity?
-                
+                        
         func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
             guard let view else {return}
             
@@ -43,7 +43,6 @@ struct ARViewContainer: UIViewControllerRepresentable {
                 print("Anchors added to the scene: ", anchors)
                 self.focusEntity = FocusEntity(on: view, style: .classic(color: .yellow))
             }
-
         }
     }
     
