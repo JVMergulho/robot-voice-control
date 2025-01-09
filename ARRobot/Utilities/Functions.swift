@@ -12,3 +12,7 @@ extension simd_float4x4 {
         return SIMD3(x: columns.3.x, y: columns.3.y, z: columns.3.z)
     }
 }
+
+extension Notification.Name {
+    static let placeModel = Notification.Name("placeModel")
+}

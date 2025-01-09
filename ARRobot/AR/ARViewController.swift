@@ -8,6 +8,7 @@
 import RealityKit
 import ARKit
 import Speech
+import FocusEntity
 
 // RealityKit ViewController
 class ARViewController: UIViewController {
@@ -16,6 +17,8 @@ class ARViewController: UIViewController {
     var robotEntity: ModelEntity?
     let robotAnchor = AnchorEntity(world: SIMD3(x: 0, y: 0, z: 0))
     let moveDuration: Double = 5.0 // seconds
+    
+    var focusEntity: FocusEntity?
     
     let speechRecognizer: SFSpeechRecognizer? = SFSpeechRecognizer()
     let speechRequest = SFSpeechAudioBufferRecognitionRequest()
@@ -48,10 +51,39 @@ class ARViewController: UIViewController {
             installGestures(on: robotEntity)
         }
         
+        startSpeechRecognition()
+        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         arView.addGestureRecognizer(tapGesture)
+                
+        focusEntity = FocusEntity(on: arView, style: .classic(color: .yellow))
         
-        startSpeechRecognition()
+        setNotifications()
+    }
+    
+    func setNotifications(){
+        NotificationCenter.default.addObserver(forName: .placeModel, object: nil, queue: .main) { _ in
+            
+            print("NOTIFIED")
+            
+            guard let focusEntity = self.focusEntity, focusEntity.onPlane else {
+                        print("Nenhum plano detectado.")
+                        return
+                    }
+            
+            let worldPos = focusEntity.position
+            
+            if let robotEntity = self.robotEntity{
+                
+                //create plane below the robot
+                self.makeGround(location: worldPos)
+                
+                //place robot a little above the plane to make it fall
+                let robotPosition = worldPos + SIMD3(x: 0, y: 1, z: 0)
+                
+                self.placeObject(object: robotEntity, location: robotPosition)
+            }
+        }
     }
     
     //MARK: - Placement
@@ -61,26 +93,8 @@ class ARViewController: UIViewController {
         print("Toque realizado na posição: \(tapLocation)")
 
         // Perform a raycast
-        let raycastResults = arView.raycast(from: tapLocation, allowing: .estimatedPlane, alignment: .horizontal)
+        // let raycastResults = arView.raycast(from: tapLocation, allowing: .estimatedPlane, alignment: .horizontal)
         
-        if let result = raycastResults.first,
-           let robotEntity{
-            let worldPos = result.worldTransform.translation
-            print("Coordenada 3D do toque: \(worldPos)")
-            
-            //create plane below the robot
-            makeGround(location: worldPos)
-            
-            //place robot a little above the plane to make it fall
-            let robotPosition = worldPos + SIMD3(x: 0, y: 1, z: 0)
-            
-            placeObject(object: robotEntity, location: robotPosition)
-            
-            //move(direction: .forward)
-                        
-        } else {
-            print("Nenhum plano detectado no local do toque.")
-        }
     }
     
     func makeGround(location: SIMD3<Float>){
@@ -129,7 +143,7 @@ class ARViewController: UIViewController {
             coachingOverlay.heightAnchor.constraint(equalTo: arView.heightAnchor)
         ])
         
-        arView.debugOptions = [.showAnchorOrigins, .showPhysics]
+        // arView.debugOptions = [.showAnchorOrigins, .showPhysics]
     
         arView.session.run(configuration)
     }

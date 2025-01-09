@@ -19,8 +19,33 @@ struct ContentView : View {
     var body: some View {
         let ARViewContainer = ARViewContainer()
         
-        ARViewContainer
-            .edgesIgnoringSafeArea(.all)
+        ZStack{
+            ARViewContainer
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack{
+                Spacer()
+                Button(
+                    action: {
+                        NotificationCenter.default.post(name: .placeModel, object: nil)
+                    print("Notificação enviada")
+                },
+                    label: {
+                        Circle()
+                            .foregroundStyle(.white)
+                            .frame(width: 64)
+                            .overlay(){
+                                Image(.robotIcon)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 48)
+                            }
+                    }
+                )
+            }
+            .padding(.bottom, 24)
+        }
+
     }
 
 }

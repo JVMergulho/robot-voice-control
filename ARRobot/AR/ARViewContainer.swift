@@ -16,9 +16,6 @@ struct ARViewContainer: UIViewControllerRepresentable {
         
         let arView = ARView(frame: .zero)
         
-         context.coordinator.view = arView
-         arView.session.delegate = context.coordinator
-        
         let viewController = ARViewController(arView: arView)
         
         return viewController
@@ -27,23 +24,6 @@ struct ARViewContainer: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: ARViewController, context: Context) {
         // Atualizações, se necessário
     }
-    
-    func makeCoordinator() -> Coordinator{
-        Coordinator()
-    }
-    
-    class Coordinator: NSObject, ARSessionDelegate{
-        weak var view: ARView?
-        var focusEntity: FocusEntity?
-                        
-        func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
-            guard let view else {return}
-            
-            if focusEntity == nil{
-                print("Anchors added to the scene: ", anchors)
-                self.focusEntity = FocusEntity(on: view, style: .classic(color: .yellow))
-            }
-        }
-    }
+
     
 }
