@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		815B01E02D2F5EBF00D8D441 /* FocusEntity in Frameworks */ = {isa = PBXBuildFile; productRef = 815B01DF2D2F5EBF00D8D441 /* FocusEntity */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		815B01A62D2DFEE200D8D441 /* ARRobot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ARRobot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				815B01E02D2F5EBF00D8D441 /* FocusEntity in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = ARRobot;
 			packageProductDependencies = (
+				815B01DF2D2F5EBF00D8D441 /* FocusEntity */,
 			);
 			productName = ARRobot;
 			productReference = 815B01A62D2DFEE200D8D441 /* ARRobot.app */;
@@ -94,6 +100,9 @@
 			);
 			mainGroup = 815B019D2D2DFEE200D8D441;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				815B01DE2D2F5EBF00D8D441 /* XCRemoteSwiftPackageReference "FocusEntity" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 815B01A72D2DFEE200D8D441 /* Products */;
 			projectDirPath = "";
@@ -332,6 +341,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		815B01DE2D2F5EBF00D8D441 /* XCRemoteSwiftPackageReference "FocusEntity" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/maxxfrazer/FocusEntity";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		815B01DF2D2F5EBF00D8D441 /* FocusEntity */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 815B01DE2D2F5EBF00D8D441 /* XCRemoteSwiftPackageReference "FocusEntity" */;
+			productName = FocusEntity;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 815B019E2D2DFEE200D8D441 /* Project object */;
 }

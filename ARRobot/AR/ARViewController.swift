@@ -12,7 +12,7 @@ import Speech
 // RealityKit ViewController
 class ARViewController: UIViewController {
     
-    private var arView: ARView!
+    var arView: ARView!
     var robotEntity: ModelEntity?
     let robotAnchor = AnchorEntity(world: SIMD3(x: 0, y: 0, z: 0))
     let moveDuration: Double = 5.0 // seconds
@@ -84,7 +84,13 @@ class ARViewController: UIViewController {
         configuration.planeDetection = [.horizontal]
         configuration.environmentTexturing = .automatic
         
-        //arView.debugOptions = .showAnchorGeometry
+        let coachingOverlay = ARCoachingOverlayView()
+        coachingOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        coachingOverlay.session = arView.session
+        coachingOverlay.goal = .horizontalPlane
+        view.addSubview(coachingOverlay)
+        
+        arView.debugOptions = [.showAnchorOrigins, .showPhysics]
     
         arView.session.run(configuration)
     }
@@ -176,6 +182,27 @@ class ARViewController: UIViewController {
     func loadRobot(){
         do {
             robotEntity = try Entity.loadModel(named: "robot")
+            
+            guard let robotEntity,
+                  let robotSize = robotEntity.model?.mesh.bounds.extents else {
+                
+                print("Error while loading robot model")
+                return
+            }
+            
+            // Collision
+            let robotMask = CollisionGroup.all.subtracting(CollisionGroups.robotGroup)
+            let robotFilter = CollisionFilter(group: CollisionGroups.robotGroup, mask: robotMask)
+                        
+            let collisionShape = ShapeResource.generateBox(size: robotSize)
+            let collisionComponent = CollisionComponent(shapes: [collisionShape], filter: robotFilter)
+            robotEntity.components.set(collisionComponent)
+
+            let physicsBody = PhysicsBodyComponent(massProperties: .default,
+                                                   material: .default,
+                                                   mode: .dynamic)
+            robotEntity.components.set(physicsBody)
+            
         } catch let error {
             print("Não foi possível carregar o modelo: \(error)")
         }
@@ -255,4 +282,9 @@ class ARViewController: UIViewController {
             }
         }
     }
+}
+
+struct CollisionGroups {
+    static let robotGroup = CollisionGroup(rawValue: 1 << 0)
+    static let sphereGroup = CollisionGroup(rawValue: 1 << 1)
 }
