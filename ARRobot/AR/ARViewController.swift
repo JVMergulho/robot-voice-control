@@ -161,8 +161,17 @@ class ARViewController: UIViewController {
                 rotateInDegrees(90)
             case .right:
                 rotateInDegrees(-90)
+            case .jump:
+                jump()
         }
         
+    }
+    
+    func jump(){
+        print("JUMP")
+        if let robotEntity{
+            robotEntity.addForce([0, 0.025, 0], relativeTo: nil)
+        }
     }
     
     func movieLinear(_ distance: Float, reverse: Bool = false) {

@@ -10,6 +10,7 @@ enum Direction: String, CaseIterable{
     case back
     case left
     case right
+    case jump
     
     static func stringToDirection(word: String) -> Direction?{
         for direction in Direction.allCases{
